@@ -5,6 +5,9 @@ import java.util.Map;
 
 public class TiledLayer
 {
+	private static final String OBJECT_NOT_FOUND_EXCEPTION = "Object %1$s not found on layer %2$s";
+
+	// From JSON
 	private int width;
 	private int height;
 	private String name;
@@ -41,5 +44,14 @@ public class TiledLayer
 	public List<TiledObject> getObjects()
 	{
 		return objects;
+	}
+
+	public TiledObject getObject(String name)
+	{
+		for (final TiledObject object : objects)
+			if (name.equals(object.getName()))
+				return object;
+
+		throw new RuntimeException(String.format(OBJECT_NOT_FOUND_EXCEPTION, name, this.name));
 	}
 }

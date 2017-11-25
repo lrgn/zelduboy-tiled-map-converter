@@ -13,21 +13,27 @@ public class TiledMapConverter
 {
 	public static void main(String[] args)
 	{
-		// if (args.length != 2)
-		// {
-		// System.out.println("Usage: java -jar zelduboy-tiled-map-converter.jar <path to Tiled JSON map> <path to generated folder>");
-		// System.exit(0);
-		// }
+		if (args.length != 2)
+		{
+			System.out.println("Usage: java -jar zelduboy-tiled-map-converter.jar <path to Tiled JSON map> <path to generated folder>");
+			System.exit(0);
+		}
 
-		try (FileReader reader = new FileReader("//home//lrgn//git//repositories//zelduboy//tiled//map.json"))
-		// try (FileReader reader = new FileReader(args[0]))
+		final File mapFile = new File(args[0]);
+		assert mapFile.exists() && mapFile.isFile() : "Argument 1 should be an existing file";
+
+		final File outputFolder = new File(args[1]);
+		assert outputFolder.exists() && outputFolder.isDirectory() : "Argument 2 should be an existing folder";
+
+		try (FileReader reader = new FileReader(mapFile))
 		{
 			final Gson gson = new Gson();
 
 			final TiledMap map = gson.fromJson(reader, TiledMap.class);
-
 			map.check();
-			CodeGenerator.generate(map, new File("//home//lrgn//git//repositories//zelduboy//tiled//test.cpp"));
+
+			final CodeGenerator gen = new CodeGenerator(map, outputFolder);
+			gen.generate();
 		}
 		catch (final FileNotFoundException e)
 		{

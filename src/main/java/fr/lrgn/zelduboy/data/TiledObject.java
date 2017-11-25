@@ -4,6 +4,7 @@ import java.util.Map;
 
 public class TiledObject
 {
+	// From JSON
 	private int id;
 	private int width;
 	private int height;

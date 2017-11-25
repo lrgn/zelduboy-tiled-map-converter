@@ -1,10 +1,10 @@
 package fr.lrgn.zelduboy.data;
 
-import java.util.HashMap;
-import java.util.Map;
-
 public class TiledMap
 {
+	private static final String LAYER_NOT_FOUND_EXCEPTION = "Layer %1$s not found";
+
+	// From JSON
 	private int version;
 	private String tiledversion;
 	private int width;
@@ -19,8 +19,6 @@ public class TiledMap
 	private String properties;
 	private int nextobjectid;
 
-	private Map<String, TiledLayer> layersByName;
-
 	public void check()
 	{
 		assert tilewidth == 16 : "tilewidth must be 16";
@@ -28,15 +26,12 @@ public class TiledMap
 		assert "orthogonal".equals(orientation) : "orientation must be orthogonal";
 	}
 
-	public TiledLayer getLayerByName(String name)
+	public TiledLayer getLayer(String name)
 	{
-		if (layersByName == null)
-		{
-			layersByName = new HashMap<String, TiledLayer>();
-			for (final TiledLayer layer : layers)
-				layersByName.put(layer.getName(), layer);
-		}
+		for (final TiledLayer layer : layers)
+			if (name.equals(layer.getName()))
+				return layer;
 
-		return layersByName.get(name);
+		throw new RuntimeException(String.format(LAYER_NOT_FOUND_EXCEPTION, name));
 	}
 }
