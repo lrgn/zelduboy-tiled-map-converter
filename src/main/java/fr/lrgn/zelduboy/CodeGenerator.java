@@ -39,6 +39,7 @@ public class CodeGenerator
 	private final TiledLayer tiles;
 	private final TiledLayer rooms;
 	private final TiledLayer locations;
+	private final TiledLayer entities;
 
 	public CodeGenerator(TiledMap map, File outputFolder)
 	{
@@ -48,6 +49,7 @@ public class CodeGenerator
 		tiles = map.getLayer("tiles");
 		rooms = map.getLayer("rooms");
 		locations = map.getLayer("locations");
+		entities = map.getLayer("entities");
 	}
 
 	public void generate() throws IOException
