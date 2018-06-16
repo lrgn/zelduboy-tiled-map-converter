@@ -11,37 +11,109 @@ import fr.lrgn.zelduboy.data.TiledMap;
 
 public class TiledMapConverter
 {
-	public static void main(String[] args)
-	{
-		if (args.length != 2)
-		{
-			System.out.println("Usage: java -jar zelduboy-tiled-map-converter.jar <path to Tiled JSON map> <path to generated folder>");
-			System.exit(0);
-		}
+    public static void main(String[] args) throws FileNotFoundException, IOException
+    {
+        if (args.length == 0)
+        {
+            printZelduboyUsage();
+            printRX31Usage();
+            return;
+        }
 
-		final File mapFile = new File(args[0]);
-		assert mapFile.exists() && mapFile.isFile() : "Argument 1 should be an existing file";
+        switch (args[0].toLowerCase())
+        {
+            case "zelduboy":
+            {
+                if (args.length != 3)
+                {
+                    printZelduboyUsage();
+                    return;
+                }
 
-		final File outputFolder = new File(args[1]);
-		assert outputFolder.exists() && outputFolder.isDirectory() : "Argument 2 should be an existing folder";
+                final File mapFile = new File(args[1]);
+                assert mapFile.exists() && mapFile.isFile() : "Argument 2 should be an existing file";
 
-		try (FileReader reader = new FileReader(mapFile))
-		{
-			final Gson gson = new Gson();
+                final File outputFolder = new File(args[2]);
+                assert outputFolder.exists() && outputFolder.isDirectory() : "Argument 3 should be an existing folder";
 
-			final TiledMap map = gson.fromJson(reader, TiledMap.class);
-			map.check();
+                generateZelduboyCode(mapFile, outputFolder);
+                break;
+            }
 
-			final CodeGenerator gen = new CodeGenerator(map, outputFolder);
-			gen.generate();
-		}
-		catch (final FileNotFoundException e)
-		{
-			e.printStackTrace();
-		}
-		catch (final IOException e)
-		{
-			e.printStackTrace();
-		}
-	}
+            case "rx-31":
+            {
+                if (args.length < 3)
+                {
+                    printRX31Usage();
+                    return;
+                }
+
+                final File[] levelFiles = new File[args.length - 2];
+
+                for (int i = 0; i != levelFiles.length; i++)
+                {
+                    levelFiles[i] = new File(args[1 + i]);
+                    assert levelFiles[i].exists() && levelFiles[i].isFile() : "Argument " + (1 + i)
+                            + " should be an existing file";
+                }
+
+                final File outputFolder = new File(args[2]);
+                assert outputFolder.exists()
+                        && outputFolder.isDirectory() : "Last argument should be an existing folder";
+
+                generateRX31Code(levelFiles, outputFolder);
+                break;
+            }
+
+            default:
+                printZelduboyUsage();
+                printRX31Usage();
+                return;
+        }
+    }
+
+    private static void generateZelduboyCode(File mapFile, File outputFolder) throws FileNotFoundException, IOException
+    {
+        try (FileReader reader = new FileReader(mapFile))
+        {
+            final Gson gson = new Gson();
+
+            final TiledMap map = gson.fromJson(reader, TiledMap.class);
+            map.check();
+
+            final ZelduboyCodeGenerator gen = new ZelduboyCodeGenerator(map, outputFolder);
+            gen.generate();
+        }
+    }
+
+    private static void generateRX31Code(File[] levelFiles, File outputFolder) throws FileNotFoundException, IOException
+    {
+        final TiledMap[] levels = new TiledMap[levelFiles.length];
+
+        for (int i = 0; i != levels.length; i++)
+        {
+            try (FileReader reader = new FileReader(levelFiles[i]))
+            {
+                final Gson gson = new Gson();
+
+                levels[i] = gson.fromJson(reader, TiledMap.class);
+                levels[i].check();
+            }
+        }
+
+        final RX31CodeGenerator gen = new RX31CodeGenerator(levels, outputFolder);
+        gen.generate();
+    }
+
+    private static void printZelduboyUsage()
+    {
+        System.out.println(
+                "Usage: java -jar zelduboy-tiled-map-converter.jar zelduboy <path to Tiled JSON map> <path to generated folder>");
+    }
+
+    private static void printRX31Usage()
+    {
+        System.out.println(
+                "Usage: java -jar zelduboy-tiled-map-converter.jar RX-31 <path to Tiled JSON levels> <path to generated folder>");
+    }
 }
