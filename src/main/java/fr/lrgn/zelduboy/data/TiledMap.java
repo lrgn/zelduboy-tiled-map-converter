@@ -21,8 +21,9 @@ public class TiledMap
 
 	public void check()
 	{
-		assert tilewidth == 16 : "tilewidth must be 16";
-		assert tileheight == 16 : "tileheight must be 16";
+		assert tilewidth % 8 == 0 : "tilewidth must be a multiple of 8";
+		assert tileheight % 8 == 0 : "tileheight must be a multiple of 8";
+		assert tilewidth == tileheight : "a tile has to be square";
 		assert "orthogonal".equals(orientation) : "orientation must be orthogonal";
 	}
 
