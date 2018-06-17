@@ -19,8 +19,6 @@ public class ZelduboyCodeGenerator extends AbstractCodeGenerator
 
     private static final String IFNDEF = "#ifndef MAP_DATA_H\n#define MAP_DATA_H\n\n";
     private static final String ENDIF = "#endif\n";
-    private static final String DEFINE = "#define %1$s %2$s\n";
-    private static final String INCLUDE = "#include \"%1$s\"\n";
 
     private static final String ROOM_EXTERN = "extern Room * %1$s;\n";
     private static final String ROOM_INSTANCE = "Room * %1$s = new Room(%2$s, %3$s, %1$sData);\n";
@@ -68,7 +66,7 @@ public class ZelduboyCodeGenerator extends AbstractCodeGenerator
             String roomsArray = "";
             for (final TiledObject room : rooms.getObjects())
             {
-                write(cWriter, ROOM_INSTANCE, room.getName(), room.getX(), room.getY());
+                write(cWriter, ROOM_INSTANCE, room.getName(), room.getX() >> 4, room.getY() >> 4);
 
                 roomsArray += (roomsArray.isEmpty() ? "" : ",") + room.getName();
             }
@@ -90,8 +88,8 @@ public class ZelduboyCodeGenerator extends AbstractCodeGenerator
             write(hWriter, INCLUDE, ROOM_HEADER_FILE);
 
             write(hWriter, DEFINE, "SPAWN_MAP", MAP_NAME);
-            write(hWriter, DEFINE, "SPAWN_X", locations.getObject("spawnLocation").getX());
-            write(hWriter, DEFINE, "SPAWN_Y", locations.getObject("spawnLocation").getY());
+            write(hWriter, DEFINE, "SPAWN_X", locations.getObject("spawnLocation").getX() >> 4);
+            write(hWriter, DEFINE, "SPAWN_Y", locations.getObject("spawnLocation").getY() >> 4);
 
             write(hWriter, MAP_EXTERN, MAP_NAME);
 
@@ -112,7 +110,7 @@ public class ZelduboyCodeGenerator extends AbstractCodeGenerator
     {
         write(writer, ROOM_DATA_DECLARATION, room.getName());
         write(writer, "{\n");
-        write(writer, ROOM_DATA_WIDTH_HEIGHT, room.getWidth(), room.getHeight());
+        write(writer, ROOM_DATA_WIDTH_HEIGHT, room.getWidth() >> 4, room.getHeight() >> 4);
 
         String passability = "";
 
@@ -122,8 +120,8 @@ public class ZelduboyCodeGenerator extends AbstractCodeGenerator
         {
             for (int x = 0; x != room.getWidth(); x++)
             {
-                final int mapX = room.getX() + x;
-                final int mapY = room.getY() + y;
+                final int mapX = (room.getX() >> 4) + x;
+                final int mapY = (room.getY() >> 4) + y;
 
                 assert mapX < tiles.getWidth() : mapX + " < " + tiles.getWidth() + " failed";
                 assert mapY < tiles.getHeight() : mapY + " < " + tiles.getHeight() + " failed";

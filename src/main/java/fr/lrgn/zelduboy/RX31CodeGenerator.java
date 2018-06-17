@@ -8,6 +8,7 @@ import java.util.Optional;
 
 import fr.lrgn.zelduboy.data.TiledLayer;
 import fr.lrgn.zelduboy.data.TiledMap;
+import fr.lrgn.zelduboy.data.TiledObject;
 
 public class RX31CodeGenerator extends AbstractCodeGenerator
 {
@@ -31,6 +32,7 @@ public class RX31CodeGenerator extends AbstractCodeGenerator
 
     public void generate() throws IOException
     {
+        generateSource();
         generateHeader();
     }
 
@@ -38,16 +40,19 @@ public class RX31CodeGenerator extends AbstractCodeGenerator
     {
         final File hFile = new File(outputFolder, LEVELS_HEADER_FILE);
 
-        try (final FileWriter hWriter = new FileWriter(hFile))
+        try (final FileWriter writer = new FileWriter(hFile))
         {
-            write(hWriter, IFNDEF);
+            write(writer, IFNDEF);
+            write(writer, INCLUDE, "Arduboy2.h");
+            write(writer, DEFINE, "ENT_BOOSTER", "1");
+            write(writer, DEFINE, "ENT_BURGERSHIP", "2");
 
             for (final TiledMap level : levels)
             {
-                generateLevel(hWriter, level);
+                generateLevel(writer, level);
             }
 
-            write(hWriter, ENDIF);
+            write(writer, ENDIF);
         }
     }
 
@@ -59,6 +64,8 @@ public class RX31CodeGenerator extends AbstractCodeGenerator
         assert levelName.isPresent() : "no property 'name' found on level";
         assert tiles.getHeight() == 8 : "tiles layer should be 8 tiles tall";
         assert tiles.getWidth() >= 16 : "tiles layer should be at least 16 tiles wide";
+
+        write(hWriter, DEFINE, "LVL_" + levelName.get().toUpperCase(), 1);
 
         write(hWriter, LEVEL_DATA_DECLARATION, levelName.get());
         write(hWriter, "{\n");
@@ -76,7 +83,58 @@ public class RX31CodeGenerator extends AbstractCodeGenerator
                 write(hWriter, ",");
         }
 
-        write(hWriter, "}\n");
+        write(hWriter, "};\n");
 
+        final TiledLayer entities = level.getLayer("entities");
+
+        String entitiesData = "";
+        int entitiesDataLength = 0;
+
+        for (final TiledObject entity : entities.getObjects())
+        {
+            entitiesData += entitiesData.isEmpty() ? "" : ",\n";
+            switch (entity.getName())
+            {
+                case "Booster":
+                    entitiesData += "ENT_BOOSTER," + Integer.toString(entity.getX()) + ',' + entity.getY();
+                    entitiesDataLength += 3;
+                    break;
+                default:
+                    System.err.println("Unknown entity type " + entity.getName());
+                    break;
+            }
+        }
+
+        write(hWriter, LEVEL_DATA_DECLARATION, levelName.get() + "entities");
+        write(hWriter, "{\n");
+        write(hWriter, entitiesDataLength + ",\n");
+        write(hWriter, entitiesData);
+
+        write(hWriter, "};\n");
     }
+
+    private void generateSource() throws IOException
+    {
+        try (final FileWriter writer = new FileWriter(new File(outputFolder, LEVELS_SOURCE_FILE)))
+        {
+            write(writer, INCLUDE, LEVELS_HEADER_FILE);
+            write(writer, EMPTY_LINE);
+            write(writer, INCLUDE, "Level.hpp");
+
+            write(writer, "Level* createLevel(uint8_t levelId) {");
+            write(writer, "switch (levelId) {");
+
+            for (final TiledMap level : levels)
+            {
+                final String levelName = level.getProperty("name").get();
+
+                write(writer, "case LVL_" + levelName.toUpperCase() + ":");
+                write(writer, "return new Level(%1$sData, %1$sentitiesData);", levelName);
+            }
+            write(writer, "default: return NULL;");
+
+            write(writer, "}}");
+        }
+    }
+
 }
