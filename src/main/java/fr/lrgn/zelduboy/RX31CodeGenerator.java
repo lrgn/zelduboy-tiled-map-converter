@@ -44,8 +44,11 @@ public class RX31CodeGenerator extends AbstractCodeGenerator
         {
             write(writer, IFNDEF);
             write(writer, INCLUDE, "Arduboy2.h");
+            write(writer, INCLUDE, "Level.hpp");
             write(writer, DEFINE, "ENT_BOOSTER", "1");
             write(writer, DEFINE, "ENT_BURGERSHIP", "2");
+
+            write(writer, "Level* createLevel(uint8_t levelId);\n");
 
             for (final TiledMap level : levels)
             {
@@ -73,14 +76,19 @@ public class RX31CodeGenerator extends AbstractCodeGenerator
 
         final int[] data = tiles.getData();
 
-        for (int i = 0; i != data.length; i++)
+        for (int x = 0; x != tiles.getWidth(); x++)
         {
-            if (i % tiles.getWidth() == 0)
-                write(hWriter, "\n");
-            // Tiled count tiles in tileset from 1, where on Arduboy we count them from 0
-            write(hWriter, Integer.toString(data[i] - 1));
-            if (i != data.length - 1)
-                write(hWriter, ",");
+            for (int y = 0; y != tiles.getHeight(); y++)
+            {
+                final int i = x + y * tiles.getWidth();
+
+                // Tiled count tiles in tileset from 1, where on Arduboy we count them from 0
+                write(hWriter, Integer.toString(data[i] - 1));
+
+                if (i != data.length - 1)
+                    write(hWriter, ",");
+            }
+            write(hWriter, "\n");
         }
 
         write(hWriter, "};\n");
