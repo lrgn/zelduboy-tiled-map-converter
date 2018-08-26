@@ -105,7 +105,7 @@ public class RX31CodeGenerator extends AbstractCodeGenerator
             {
                 case "Booster":
                     entitiesData += "ENT_BOOSTER," + Integer.toString(entity.getX()) + ',' + entity.getY();
-                    entitiesDataLength += 3;
+                    entitiesDataLength += 1;
                     break;
                 default:
                     System.err.println("Unknown entity type " + entity.getName());
